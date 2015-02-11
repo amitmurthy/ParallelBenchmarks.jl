@@ -20,20 +20,17 @@ for n = testns
         tmp = similar(a)
         for i = 1:ps
             MPI.Send(a, i, 2001, MPI.COMM_WORLD)
-            # MPI.Recv!(a, i, 2001, MPI.COMM_WORLD)
-            gc()
+            MPI.Recv!(a, i, 2001, MPI.COMM_WORLD)
             timings1[log2(n) - 1, i] = @elapsed begin
                 MPI.Send(a, i, 2001, MPI.COMM_WORLD)
-                # MPI.Recv!(a, i, 2001, MPI.COMM_WORLD)
+                MPI.Recv!(a, i, 2001, MPI.COMM_WORLD)
             end
             MPI.send(a, i, 2001, MPI.COMM_WORLD)
-            # a = MPI.recv(i, 2001, MPI.COMM_WORLD)[1]
-            gc()
+            a = MPI.recv(i, 2001, MPI.COMM_WORLD)[1]
             timings2[log2(n) - 1, i] = @elapsed begin
                 MPI.send(a, i, 2001, MPI.COMM_WORLD)
-                # a = MPI.recv(i, 2001, MPI.COMM_WORLD)[1]
+                a = MPI.recv(i, 2001, MPI.COMM_WORLD)[1]
             end
-            gc()
             timings3[log2(n) - 1, i] = @elapsed (copy!(tmp, a);copy!(tmp, a))
         end
     else
@@ -41,13 +38,13 @@ for n = testns
             a_work = Array(Float64, n)
             if MPI.Comm_rank(MPI.COMM_WORLD) == i
                 MPI.Recv!(a_work, 0, 2001, MPI.COMM_WORLD)
-                # MPI.Send(a_work, 0, 2001, MPI.COMM_WORLD)
+                MPI.Send(a_work, 0, 2001, MPI.COMM_WORLD)
                 MPI.Recv!(a_work, 0, 2001, MPI.COMM_WORLD)
-                # MPI.Send(a_work, 0, 2001, MPI.COMM_WORLD)
+                MPI.Send(a_work, 0, 2001, MPI.COMM_WORLD)
                 a_work = MPI.recv(0, 2001, MPI.COMM_WORLD)[1]
-                # MPI.send(a_work, 0, 2001, MPI.COMM_WORLD)
+                MPI.send(a_work, 0, 2001, MPI.COMM_WORLD)
                 a_work = MPI.recv(0, 2001, MPI.COMM_WORLD)[1]
-                # MPI.send(a_work, 0, 2001, MPI.COMM_WORLD)
+                MPI.send(a_work, 0, 2001, MPI.COMM_WORLD)
             end
         end
     end
@@ -57,7 +54,7 @@ if MPI.Comm_rank(MPI.COMM_WORLD) == 0
     writedlm("MPImuck2.txt", hcat(
         [fill("MPI_no_serialize", ltns), fill("MPI_serialize", ltns), fill("copy", ltns)],
         [testns, testns, testns],
-        vcat(minimum(timings1, 2), minimum(timings2, 2), minimum(timings3, 2))))
+        vcat(mean(timings1, 2), mean(timings2, 2), mean(timings3, 2))))
 end
 
 
