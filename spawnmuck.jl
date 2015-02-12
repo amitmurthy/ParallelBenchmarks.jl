@@ -39,7 +39,8 @@ serialize_rcv(Base.PipeBuffer(), :call_fetch, Base.next_id(), x->x, randn(2))
 
 for n in testns
     a = randn(n)
-    tmp = [@elapsed serialize_rcv(Base.PipeBuffer(), :call_fetch, Base.next_id(), x->x, a) for i in workers(), j = 1:20]
+    io = Base.PipeBuffer()
+    tmp = [@elapsed serialize_rcv(io, :call_fetch, Base.next_id(), x->x, a) for i in workers(), j = 1:20]
     push!(tMean, mean(tmp))
     push!(tStd, std(tmp))
     push!(tMin, minimum(tmp))
