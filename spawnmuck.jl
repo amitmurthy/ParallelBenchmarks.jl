@@ -36,6 +36,7 @@ tStd = Float64[]
 tMin = Float64[]
 
 serialize_rcv(Base.PipeBuffer(), :call_fetch, Base.next_id(), x->x, randn(2))
+@everywhere echo(x)=x
 
 for n in testns
     a = randn(n)
@@ -47,4 +48,21 @@ for n in testns
 end
 
 writedlm("sermuck.txt", hcat(fill("serdeser", length(testns)), testns, tMean, tStd, tMin))
+
+tMean = Float64[]
+tStd = Float64[]
+tMin = Float64[]
+
+remotecall_fetch(2, echo, randn(2))
+
+for n in testns
+    a = randn(n)
+    io = Base.PipeBuffer()
+    tmp = [@elapsed remotecall_fetch(i, echo, a) for i in workers(), j = 1:20]
+    push!(tMean, mean(tmp))
+    push!(tStd, std(tmp))
+    push!(tMin, minimum(tmp))
+end
+
+writedlm("rcfechomuck.txt", hcat(fill("rcfecho", length(testns)), testns, tMean, tStd, tMin))
 
