@@ -54,7 +54,7 @@ if MPI.Comm_rank(MPI.COMM_WORLD) == 0
     writedlm("MPImuck2.txt", hcat(
         [fill("MPI_no_serialize", ltns), fill("MPI_serialize", ltns), fill("copy", ltns)],
         [testns, testns, testns],
-        vcat(mean(timings1, 2), mean(timings2, 2), mean(timings3, 2))))
+        vcat(minimum(timings1, 2), minimum(timings2, 2), minimum(timings3, 2))))
 end
 
 
